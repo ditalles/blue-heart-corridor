@@ -1,38 +1,87 @@
 name: Keep Supabase Alive
 
-# Pings Supabase daily to prevent the free-tier project from being paused
-# after 7 days of inactivity. Runs in GitHub's cloud — works even when
-# the local machine is offline.
+# Keeps the Supabase free-tier project active by performing meaningful
+# database activity daily. A single GET request isn't enough — Supabase's
+# scanner looks for varied endpoint usage and write activity.
+#
+# Runs in GitHub's cloud independent of any local machine.
 
 on:
   schedule:
-    # Runs every day at 09:23 UTC (avoid common :00/:30 marks)
-    - cron: '23 9 * * *'
+    # Twice daily at 09:23 and 21:23 UTC — varied times, varied operations
+    - cron: '23 9,21 * * *'
   workflow_dispatch: # Allow manual trigger from the Actions tab
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: REST query — read hostels
+        run: |
+          STATUS=$(curl -s -o /tmp/r1.json -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/hostels?select=id,name&limit=3" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Hostels query: HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: REST query — read rooms
+        run: |
+          STATUS=$(curl -s -o /tmp/r2.json -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rooms?select=id,name,capacity&limit=5" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Rooms query: HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: REST query — read availability
+        run: |
+          STATUS=$(curl -s -o /tmp/r3.json -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/availability?select=id,date&limit=5" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Availability query: HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: WRITE — insert heartbeat record
+        run: |
+          STATUS=$(curl -s -o /tmp/w1.json -w "%{http_code}" \
+            -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/heartbeats" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"source\":\"github-actions\"}")
+          echo "Heartbeat insert: HTTP $STATUS"
+          [ "$STATUS" = "201" ] || [ "$STATUS" = "204" ] || exit 1
+
+      - name: AUTH endpoint health check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/hostels?select=id&limit=1" \
+            "${{ secrets.SUPABASE_URL }}/auth/v1/health" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
-          echo "Supabase responded with HTTP $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "::error::Supabase returned non-200 status. Project may be paused."
-            exit 1
-          fi
+          echo "Auth health: HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: RPC — call search_hostels function
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/search_hostels" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"p_country":"BA","p_limit":5}')
+          echo "RPC search: HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Cleanup — keep last 30 heartbeats only
+        run: |
+          curl -s -X DELETE \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/heartbeats?pinged_at=lt.$(date -u -d '30 days ago' +%Y-%m-%d)" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Prefer: return=minimal" || true
+          echo "Cleanup done"
 
       - name: Ping Vercel deployment
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://claudehostelmarketplace.vercel.app")
-          echo "Vercel responded with HTTP $STATUS"
-          if [ "$STATUS" != "200" ] && [ "$STATUS" != "307" ]; then
-            echo "::warning::Vercel returned $STATUS — check deployment"
-          fi
+          echo "Vercel: HTTP $STATUS"
 
       - name: Summary
-        run: echo "✓ Keep-alive ping complete at $(date -u)"
+        run: echo "✓ All keep-alive operations completed at $(date -u)"
