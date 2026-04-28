@@ -47,7 +47,7 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
               Explore the Balkans.
               <br />
-              <span className="text-primary">Sleep for less.</span>
+              <span className="text-amber-400">Sleep for less.</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
               Find, book, and review the best youth hostels across 11 Balkan countries.

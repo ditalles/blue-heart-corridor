@@ -90,7 +90,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
     <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-4xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
             <MapPin className="h-3.5 w-3.5" /> Country
           </Label>
           <Select value={country} onValueChange={(v) => { setCountry(v ?? ""); setCity(""); }}>
@@ -106,7 +106,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
             <MapPin className="h-3.5 w-3.5" /> City
           </Label>
           <Select value={city} onValueChange={(v) => setCity(v ?? "")} disabled={!country}>
@@ -122,7 +122,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
             <Calendar className="h-3.5 w-3.5" /> Check-in
           </Label>
           <Input
@@ -134,7 +134,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
             <Calendar className="h-3.5 w-3.5" /> Check-out
           </Label>
           <Input
@@ -148,7 +148,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
 
       <div className="flex items-end gap-4 mt-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1">
+          <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
             <Users className="h-3.5 w-3.5" /> Guests
           </Label>
           <Input

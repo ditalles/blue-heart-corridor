@@ -121,10 +121,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+  /* Force native form controls (date pickers, number inputs) to use light theme
+     so they don't render with white text on Macs in dark mode */
+  input,
+  select,
+  textarea {
+    color-scheme: light;
+    color: oklch(0.145 0 0);
   }
 }
