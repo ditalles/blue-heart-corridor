@@ -87,7 +87,7 @@ export function SearchBar({ variant = "hero", defaults }: SearchBarProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-4xl mx-auto">
+    <div className="bg-white text-slate-900 rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-4xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-1 text-slate-700">
